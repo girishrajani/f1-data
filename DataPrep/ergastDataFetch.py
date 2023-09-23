@@ -33,7 +33,7 @@ def getRaceLapTimeData(year, raceNo, raceId, totalLaps):
             lapsRem = totalLaps - int(currentLap)
             primKey = driverId + currentLap
             importLapData = {
-                "raceId" : raceId,
+                "raceId" : str(raceId),
                 "raceTrack" : raceTrack,
                 "lapId" : currentLap,
                 "primaryKey" : primKey,
@@ -77,8 +77,8 @@ def getPitStopData(year,raceNo,raceId):
 
 def joinTwoDataFrames(lapTimes,pitStops):
     print("Combining all the Data")
-    df = pd.merge(lapTimes, pitStops, on='primaryKey', how='left')
-    print(df.head(20))
+    finalOutput = pd.merge(lapTimes, pitStops, on='primaryKey', how='left')
+    return finalOutput
 
 
 def saveLaptimeCSV(saveToCSV,filename):
@@ -97,9 +97,9 @@ allPitStops = getPitStopData(year,raceno,raceId)
 
 lapTimesForAllDrivers = getRaceLapTimeData(year,raceno,raceId,totalLaps)
 
-joinTwoDataFrames(lapTimesForAllDrivers,allPitStops)
-file = "data/"+year+"/"+str(raceId) + ".csv" 
-saveLaptimeCSV(lapTimesForAllDrivers, file)
+dataFile = joinTwoDataFrames(lapTimesForAllDrivers,allPitStops)
+fileLocation = "data/"+year+"/"+str(raceId) + ".csv" 
+saveLaptimeCSV(dataFile, fileLocation)
 
 
 
