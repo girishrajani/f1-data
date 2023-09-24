@@ -1,19 +1,22 @@
 import pandas as pd
 import numpy as np
 
-
 year = input("Enter the year: ")
 raceId = input("Enter raceID: ")
 
 openFile = "Data/" + year + "/" + raceId + ".csv"
-
+# data = pd.read_csv("Data/2019/201901.csv")
 data = pd.read_csv(openFile)
 data = data.drop("Unnamed: 0",axis=1)
 
 # For not fiving out a warning while changing values
 pd.set_option('mode.chained_assignment', None)
 
-# Add New Cols 
+# Add New Cols for Track Cat
+trackCat = int(input("Enter race track category: "))
+data["trackCat"] = trackCat
+
+# # Add New Cols 
 data["currentTire"] = None
 data["actualCompound"] = None
 data["tireAge"] = float("nan")
@@ -102,14 +105,41 @@ for i in range(size):
         data["actualCompound"][i] = driverDict[driver]["actualCompound"]
         data["tireAge"][i] = driverDict[driver]["tireAge"]
 
+# Add New Cols for Saftey Car Status
+data["type"] = None
 
-data = raceData.append(data)
+print("1: Yes , 0: No")
+safteyCar = int(input("Was there a saftey car in this race: "))
 
-filename = "Test/test.csv"
+safteyDict = {}
+counter = 0
+lapsWhichHaveSC = []
 
-data.to_csv(filename, encoding = 'utf-8-sig',index = False) 
+while safteyCar == 1:
+    type = input("Enter the Type: (VSC or SC): ")
+    startLap = int(input("Enter start lap: "))
+    endLap = int(input("Enter end lap: "))
+    for k in range(startLap,endLap):
+        safteyDict[k] = type
+    safteyDict[endLap] = type
+    safteyCar = int(input("Enter 1 if more saftey cars else enter 0: "))
 
-print("DONE")
+allSafteyCars = list(safteyDict.keys())
+
+
+# print(allSafteyCars)
+for i in range(size):
+    lap = int(data["lapId"][i])
+    if lap in allSafteyCars:
+        data["type"][i] = safteyDict[lap]
+
+
+print(data.head(40))
+
+# data = raceData.append(data)
+# filename = "Test/test.csv"
+
+# data.to_csv(filename, encoding = 'utf-8-sig',index = False) 
 
 """
 Todo for next time:
