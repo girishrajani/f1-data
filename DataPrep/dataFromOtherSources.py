@@ -1,22 +1,60 @@
 import pandas as pd
 import numpy as np
 
+
 year = input("Enter the year: ")
 raceId = input("Enter raceID: ")
 
 openFile = "Data/" + year + "/" + raceId + ".csv"
-# data = pd.read_csv("Data/2019/201901.csv")
+
 data = pd.read_csv(openFile)
 data = data.drop("Unnamed: 0",axis=1)
 
+size = data.shape[0]
+
 # For not fiving out a warning while changing values
 pd.set_option('mode.chained_assignment', None)
+trackId = input("Enter trackID: ")
+data["trackId"] = trackId
+
+# Script for ToPit or NotToPit Coloumn (Output)
+# 1 => True (Pit) Box-Box
+# 0 => False (Don't Pit)
+data["toPit"] = float('nan')
+for i in range(size):
+    if pd.isna(data["stopNo"][i]):
+        data["toPit"][i] = 0
+    else:
+        data["toPit"][i] = 1
+
+
+# Script for RaceProgress
+# Divide currentlap and total laps
+# Required Value between 0 and 1
+data["raceProgress"] = float('nan')
+for i in range(size):
+    curr =  data["lapId"][i]
+    tot = data["totalLaps"][i]
+    data["raceProgress"][i] = round(curr/tot,2)
+
+
+# Script for converting time from String to Float
+data["lapTimes"] = float('nan')
+for i in range(size):
+    currentString = data["laptime"][i]
+    # minsToSecs = int(currentString[0]) * 60
+    # seconds = float(currentString[2:])
+    lapTimeInSecs = (int(currentString[0]) * 60) + float(currentString[2:])
+    data["lapTimes"][i] = lapTimeInSecs
+data = data.drop("laptime",axis=1)
+
+
 
 # Add New Cols for Track Cat
-trackCat = int(input("Enter race track category: "))
-data["trackCat"] = trackCat
+# trackCat = int(input("Enter race track category: "))
+# data["trackCat"] = trackCat
 
-# # Add New Cols 
+# Add New Cols 
 data["currentTire"] = None
 data["actualCompound"] = None
 data["tireAge"] = float("nan")
@@ -31,9 +69,10 @@ tireDict["soft"] = soft
 tireDict["medium"] = medium
 tireDict["hard"] = hard
 
-
+# Formation Lap Data
 dataStruct = {
     "raceId" : [],
+    "trackId" : [],
     "raceTrack" : [],
     "lapId" : [],
     "primaryKey" : [],
@@ -46,6 +85,11 @@ dataStruct = {
     "currentTire" : [],
     "actualCompound" : [],
     "tireAge" : [],
+    "toPit" : [],
+    "raceProgress" :[],
+    "lapTimes" : [],
+    "safteyCarType" : [],
+    "pitStopFulfilled" : []
 }
 
 raceData = pd.DataFrame(dataStruct)
@@ -59,25 +103,32 @@ for i in range(20):
         "currentTire" : startingTire,
         "actualCompound" : actualCompound ,
         "tireAge" : tireAge,
+        "pitFulfilled" : 0,
     }
     formationLap = {
         "raceId" : raceId,
+        "trackId" : trackId,
         "raceTrack" : data["raceTrack"][i],
         "lapId" : 0,
         "primaryKey" : driver + "0",
         "totalLaps" :  data["totalLaps"][i],
         "lapsRem" : data["totalLaps"][i],
         "driverId" : driver,
-        "laptime" : "0:0.0",
         "stopNo" : float("nan"),
         "stopDuration": float("nan"),
         "currentTire" : startingTire,
         "actualCompound" : actualCompound,
-        "tireAge" : tireAge
+        "tireAge" : tireAge,
+        "toPit" : 0,
+        "raceProgress" : 0.00,
+        "lapTimes" : 0.0,
+        "safteyCarType": None,
+        "pitStopFulfilled" : 0
     }
     raceData = raceData.append(formationLap, ignore_index=True)
 
-size = data.shape[0]
+
+data["toChange"] = None
 
 for i in range(size):
     driver = data["driverId"][i]
@@ -104,9 +155,13 @@ for i in range(size):
         data["currentTire"][i] = driverDict[driver]["currentTire"]
         data["actualCompound"][i] = driverDict[driver]["actualCompound"]
         data["tireAge"][i] = driverDict[driver]["tireAge"]
+        data["toChange"][i] = actualCompound
+
+
+
 
 # Add New Cols for Saftey Car Status
-data["type"] = None
+data["safteyCarType"] = None
 
 print("1: Yes , 0: No")
 safteyCar = int(input("Was there a saftey car in this race: "))
@@ -131,15 +186,47 @@ allSafteyCars = list(safteyDict.keys())
 for i in range(size):
     lap = int(data["lapId"][i])
     if lap in allSafteyCars:
-        data["type"][i] = safteyDict[lap]
+        data["safteyCarType"][i] = safteyDict[lap]
 
 
-print(data.head(40))
+data["pitStopFulfilled"] = float('nan')
 
-# data = raceData.append(data)
-# filename = "Test/test.csv"
+for i in range(size):
+    driver = data["driverId"][i]
+    if not pd.isna(data["stopNo"][i]):
+        driverDict[driver]["pitFulfilled"] = 1      
+    data["pitStopFulfilled"][i] = driverDict[driver]["pitFulfilled"]
 
-# data.to_csv(filename, encoding = 'utf-8-sig',index = False) 
+
+print(data)
+
+
+data = raceData.append(data)
+filename = "Test/test.csv"
+
+data.to_csv(filename, encoding = 'utf-8-sig',index = False) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 """
 Todo for next time:
