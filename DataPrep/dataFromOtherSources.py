@@ -206,7 +206,7 @@ print(data)
 
 
 data = raceData.append(data)
-filename = "Test/test.csv"
+filename = "Data/"+ year +"/" + raceId +".csv"
 
 data.to_csv(filename, encoding = 'utf-8-sig',index = False) 
 
