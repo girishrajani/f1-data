@@ -14,13 +14,13 @@ size = data.shape[0]
 
 # For not fiving out a warning while changing values
 pd.set_option('mode.chained_assignment', None)
-trackId = input("Enter trackID: ")
+trackId = int(input("Enter trackID: "))
 data["trackId"] = trackId
 
 # Script for ToPit or NotToPit Coloumn (Output)
 # 1 => True (Pit) Box-Box
 # 0 => False (Don't Pit)
-data["toPit"] = float('nan')
+data["toPit"] = 0
 for i in range(size):
     if pd.isna(data["stopNo"][i]):
         data["toPit"][i] = 0
@@ -51,8 +51,8 @@ data = data.drop("laptime",axis=1)
 
 
 # Add New Cols for Track Cat
-# trackCat = int(input("Enter race track category: "))
-# data["trackCat"] = trackCat
+trackCat = int(input("Enter race track category: "))
+data["trackCat"] = trackCat
 
 # Add New Cols 
 data["currentTire"] = None
@@ -62,17 +62,18 @@ data["tireAge"] = float("nan")
 driverDict = {}
 tireDict = {}
 
-soft = input("Enter what Soft Stands for: ")
-medium = input("Enter what Medium Stands for: ")
-hard = input("Enter what Hard Stands for: ")
-tireDict["soft"] = soft
-tireDict["medium"] = medium
-tireDict["hard"] = hard
+soft = input("Enter what Soft(1) Stands for: ")
+medium = input("Enter what Medium(2) Stands for: ")
+hard = input("Enter what Hard(3) Stands for: ")
+tireDict["1"] = soft
+tireDict["2"] = medium
+tireDict["3"] = hard
 
 # Formation Lap Data
 dataStruct = {
     "raceId" : [],
     "trackId" : [],
+    "trackCat" : [],
     "raceTrack" : [],
     "lapId" : [],
     "primaryKey" : [],
@@ -85,20 +86,21 @@ dataStruct = {
     "currentTire" : [],
     "actualCompound" : [],
     "tireAge" : [],
-    "toPit" : [],
     "raceProgress" :[],
     "lapTimes" : [],
     "safteyCarType" : [],
-    "pitStopFulfilled" : []
+    "pitStopFulfilled" : [],
+    "toPit" : [],
+    "toChange" : []
 }
 
 raceData = pd.DataFrame(dataStruct)
 
 for i in range(20):
     driver = data["driverId"][i]
-    startingTire = input("Enter starting tire for " + driver + ": ")
+    startingTire = int(input("Enter starting tire for " + driver + ": "))
     tireAge = 0
-    actualCompound = tireDict[startingTire]
+    actualCompound = tireDict[str(startingTire)]
     driverDict[driver] = {
         "currentTire" : startingTire,
         "actualCompound" : actualCompound ,
@@ -108,27 +110,29 @@ for i in range(20):
     formationLap = {
         "raceId" : raceId,
         "trackId" : trackId,
+        "trackCat" : trackCat,
         "raceTrack" : data["raceTrack"][i],
         "lapId" : 0,
         "primaryKey" : driver + "0",
         "totalLaps" :  data["totalLaps"][i],
         "lapsRem" : data["totalLaps"][i],
         "driverId" : driver,
-        "stopNo" : float("nan"),
-        "stopDuration": float("nan"),
+        "stopNo" : float(0.0),
+        "stopDuration": float(0.0),
         "currentTire" : startingTire,
         "actualCompound" : actualCompound,
         "tireAge" : tireAge,
-        "toPit" : 0,
         "raceProgress" : 0.00,
         "lapTimes" : 0.0,
-        "safteyCarType": None,
-        "pitStopFulfilled" : 0
+        "safteyCarType": 0,
+        "pitStopFulfilled" : 0,
+        "toPit" : 0,
+        "toChange" : 0
     }
     raceData = raceData.append(formationLap, ignore_index=True)
 
 
-data["toChange"] = None
+data["toChange"] = 0
 
 for i in range(size):
     driver = data["driverId"][i]
@@ -136,8 +140,8 @@ for i in range(size):
         # Copy Paste the data from Dict
         # Update tireAge by 1
         # Update NaN Values None(Null)
-        data["stopNo"][i] = None
-        data["stopDuration"][i] = None
+        data["stopNo"][i] = float('nan')
+        data["stopDuration"][i] = float(0.0)
         data["currentTire"][i] = driverDict[driver]["currentTire"]
         data["actualCompound"][i] = driverDict[driver]["actualCompound"]
         driverDict[driver]["tireAge"] = int(driverDict[driver]["tireAge"]) + 1
@@ -147,7 +151,7 @@ for i in range(size):
         # Take user input 
         # Update the Dict
         newTire = input("Enter the new Compund Fitted by "+ driver +" at lap "+ str(data["lapId"][i]) +": ")
-        actualCompound = tireDict[newTire]
+        actualCompound = tireDict[str(newTire)]
         tireAge = 0
         driverDict[driver]["currentTire"] = newTire
         driverDict[driver]["actualCompound"] = actualCompound
@@ -155,13 +159,13 @@ for i in range(size):
         data["currentTire"][i] = driverDict[driver]["currentTire"]
         data["actualCompound"][i] = driverDict[driver]["actualCompound"]
         data["tireAge"][i] = driverDict[driver]["tireAge"]
-        data["toChange"][i] = actualCompound
+        data["toChange"][i] = newTire
 
 
 
 
 # Add New Cols for Saftey Car Status
-data["safteyCarType"] = None
+data["safteyCarType"] = 0
 
 print("1: Yes , 0: No")
 safteyCar = int(input("Was there a saftey car in this race: "))
@@ -171,7 +175,7 @@ counter = 0
 lapsWhichHaveSC = []
 
 while safteyCar == 1:
-    type = input("Enter the Type: (VSC or SC): ")
+    type = int(input("Enter the Type: (1 for SC or 2 for VSC): "))
     startLap = int(input("Enter start lap: "))
     endLap = int(input("Enter end lap: "))
     for k in range(startLap,endLap):
