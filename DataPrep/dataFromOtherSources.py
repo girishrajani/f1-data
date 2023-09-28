@@ -5,7 +5,7 @@ import numpy as np
 year = input("Enter the year: ")
 raceId = input("Enter raceID: ")
 
-openFile = "Data/" + year + "/" + raceId + ".csv"
+openFile = "APIData/" + year + "/" + raceId + ".csv"
 
 data = pd.read_csv(openFile)
 data = data.drop("Unnamed: 0",axis=1)
@@ -80,8 +80,6 @@ dataStruct = {
     "totalLaps" :  [],
     "lapsRem" : [],
     "driverId" : [],
-    "laptime" : [],
-    "stopNo" : [],
     "stopDuration": [],
     "currentTire" : [],
     "actualCompound" : [],
@@ -117,7 +115,6 @@ for i in range(20):
         "totalLaps" :  data["totalLaps"][i],
         "lapsRem" : data["totalLaps"][i],
         "driverId" : driver,
-        "stopNo" : float(0.0),
         "stopDuration": float(0.0),
         "currentTire" : startingTire,
         "actualCompound" : actualCompound,
@@ -161,9 +158,6 @@ for i in range(size):
         data["tireAge"][i] = driverDict[driver]["tireAge"]
         data["toChange"][i] = newTire
 
-
-
-
 # Add New Cols for Saftey Car Status
 data["safteyCarType"] = 0
 
@@ -204,31 +198,13 @@ for i in range(size):
 
 print(data)
 
-
+data = data.drop("stopNo",axis=1)
 data = raceData.append(data)
 filename = "Data/"+ year +"/" + raceId +".csv"
 
 data.to_csv(filename, encoding = 'utf-8-sig',index = False) 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+print("coding is like poetry should be short and concise.....but this is not :0")
 
 
 
